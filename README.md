@@ -28,17 +28,17 @@ scores = self.score_head(last_hidden_state).float()
 - `tensorboard --logdir ./output/rm`可以看到训练曲线
 <div style="display: flex; justify-content: space-around;">
   <figure style="text-align: center;">
-    <img src="./fig/reward_model_train_acc.bmp" alt="图片1" width="300" />
+    <img src="./fig/reward_model_train_acc.bmp" alt="图片1" width="400" />
     <figcaption>RM training accuracy</figcaption>
   </figure>
   
   <figure style="text-align: center;">
-    <img src="./fig/reward_model_train_loss.bmp" alt="图片2" width="300" />
+    <img src="./fig/reward_model_train_loss.bmp" alt="图片2" width="400" />
     <figcaption>RM training loss</figcaption>
   </figure>
 
   <figure style="text-align: center;">
-    <img src="./fig/reward_model_eval_acc.bmp" alt="图片3" width="300" />
+    <img src="./fig/reward_model_eval_acc.bmp" alt="图片3" width="400" />
     <figcaption>RM eval accuracy</figcaption>
   </figure>
 </div>
@@ -54,9 +54,8 @@ scores = self.score_head(last_hidden_state).float()
   <img src="./fig/eval.bmp" alt="eval" />
   <figcaption>Evaluation</figcaption>
 </figure>
+- 从训练是的评估曲线和最后的评估结果可以看出，没有出现过拟合现象。但是在测试集上准确率低于训练集，这说明模型泛化能力不足，这可能是参数量太小导致的
 
-- 从训练是的评估曲线和最后的评估结果可以看出，我们的训练没有出现过拟合现象
-- 
 #### 踩坑记录
 
 我将训练集置空`TRAIN_DATASETS= ""`，把模型路径设置为`../output/rm/slice_end`，然后运行`bash rm.sh`，出现如下报错：
@@ -152,6 +151,12 @@ def get_dataloaders(self, train_data_dtype, eval_data_dtype) -> None:
   <figcaption>Score distribution of human preference data by trained reward model</figcaption>
 </figure>
 
+- 如果在训练集上，用奖励模型评分，则人类标注为`chosen`和`rejected`的数据的评分分布差距更高
+<figure style="text-align: center;">
+  <img src="./fig/trainset_rm.png" alt="train" />
+  <figcaption>Score distribution on training set</figcaption>
+</figure>
+
 ## 回答问题
 
 ### 奖励建模有哪些应用？
@@ -192,9 +197,45 @@ def get_dataloaders(self, train_data_dtype, eval_data_dtype) -> None:
   </figure>
 </div>
 
+- reward accuracy反映出当前模型生成人类选择文本的log_prob大于未被选择文本的概率
+```python
+# better_log_ratio是当前模型与参考模型对当前文本建模的log_prob之差
+better_log_ratio = better_log_prob - ref_better_log_prob
+worse_log_ratio = worse_log_prob - ref_worse_log_prob
+# DPO loss function
+losses.append(
+    -F.logsigmoid(
+        self.cfgs.train_cfgs.scale_coeff * (better_log_ratio - worse_log_ratio),
+    ),
+)
+# reward是better_log_ratio乘以一个scale_coeff得到的
+better_sample_rewards.append(
+    self.cfgs.train_cfgs.scale_coeff * better_log_ratio.detach(),
+)
+···
+reward_accuracy = (better_sample_reward > worse_sample_reward).float().mean() 
+```
 ## DPO model inference
 
+### Respond to the test prompts
+- 分别使用DPO训练好的模型和qwen在用于**测试**的prompts上生成回复，然后用`Reward Model`打分，绘制得分的分布
+<figure style="text-align: center;">
+  <img src="./fig/qwen_dpo_4_test_response.png" alt="test_response" />
+  <figcaption>Use the reward model to grade the response to testing prompts</figcaption>
+</figure>
 
+### Respond to the randomly sampled training prompts
+- 分别使用DPO训练好的模型和qwen在**训练集**中随机选取的prompts上生成回复，然后用`Reward Model`打分，绘制得分的分布
+<figure style="text-align: center;">
+  <img src="./fig/qwen_dpo_4_train_response.png" alt="train_response" />
+  <figcaption>Use the reward model to grade the response to training prompts</figcaption>
+</figure>
+
+## Analysis
+- 我们发现dpo训练后的模型，无论在测试集还是随机选取的训练集中的prompt上，`reward model`打分的分布都小于原始的qwen模型
+- 我认为原因在于**奖励模型不准确**
+  - 从DPO训练曲线可以看出，DPO更倾向于生成人类选择的文本，所有训练是有效的
+  - 先前测试reward model的时候，分数的分布集中于0附近，而此时的评分集中在10附近。我认为这说明reward model对新生成的回复的打分是不准确的，不能泛化到OOD的数据
 # 参考文献
 
 @article{ouyang2022training,

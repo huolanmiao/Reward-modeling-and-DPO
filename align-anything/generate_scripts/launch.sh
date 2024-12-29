@@ -1,6 +1,6 @@
 file_list=(
-    ../../models/Qwen-0.5B-Instruct
-    # ../output/dpo/slice_end
+    # ../../models/Qwen-0.5B-Instruct
+    ../output/dpo/slice_end
     
     # you can replace it with other models
     # or add more models below
@@ -12,7 +12,7 @@ export CUDA_VISIBLE_DEVICES="0"
 # INPUTFILE="./test.json"
 INPUTFILE="./output.json"
 
-NUM_RESPONSES=1
+NUM_RESPONSES=4
 
 for model in "${file_list[@]}"; do
 

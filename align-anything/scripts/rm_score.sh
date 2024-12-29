@@ -4,15 +4,16 @@
 MODEL_NAME_OR_PATH="../output/rm/slice_end" # model path
 # MODEL_NAME_OR_PATH="../output/rm/slice_end"
 # for example: ~/align-anything/generate_scripts/test/Qwen-0.5B-Instruct_num_4_time_20241103_133249.json
-EVAL_DATASETS="../../datasets/PKU-SafeRLHF-single-dimension" # dataset path
+# EVAL_DATASETS="../../datasets/PKU-SafeRLHF-single-dimension" # dataset path
 
 # EVAL_DATASETS="../generate_scripts/test/Qwen-0.5B-Instruct_num_4_time.json"
 # EVAL_DATASETS="../generate_scripts/test/slice_end_num_4_time.json"
 # EVAL_DATASETS="../generate_scripts/test/Qwen-0.5B-Instruct_num_1_time_train.json"
 # EVAL_DATASETS="../generate_scripts/test/slice_end_num_1_time_train.json"
-
-EVAL_TEMPLATE="HOMEWORK" # dataset template
-# EVAL_TEMPLATE="PKUSafeRLHF"
+# EVAL_DATASETS="../generate_scripts/test/Qwen-0.5B-Instruct_num_4_time_train.json"
+EVAL_DATASETS="../generate_scripts/test/slice_end_num_4_time_train.json"
+# EVAL_TEMPLATE="HOMEWORK" # dataset template
+EVAL_TEMPLATE="PKUSafeRLHF"
 EVAL_SPLIT="train" # split the dataset
 
 OUTPUT_DIR="../output/rm_score" # output dir
