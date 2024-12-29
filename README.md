@@ -28,17 +28,17 @@ scores = self.score_head(last_hidden_state).float()
 - `tensorboard --logdir ./output/rm`可以看到训练曲线
 <div style="display: flex; justify-content: space-around;">
   <figure style="text-align: center;">
-    <img src="./fig/reward_model_train_acc.bmp" alt="图片1" width="400" />
+    <img src="./fig/reward_model_train_acc.bmp" alt="图片1" width="300" />
     <figcaption>RM training accuracy</figcaption>
   </figure>
   
   <figure style="text-align: center;">
-    <img src="./fig/reward_model_train_loss.bmp" alt="图片2" width="400" />
+    <img src="./fig/reward_model_train_loss.bmp" alt="图片2" width="300" />
     <figcaption>RM training loss</figcaption>
   </figure>
 
   <figure style="text-align: center;">
-    <img src="./fig/reward_model_eval_acc.bmp" alt="图片3" width="400" />
+    <img src="./fig/reward_model_eval_acc.bmp" alt="图片3" width="300" />
     <figcaption>RM eval accuracy</figcaption>
   </figure>
 </div>
@@ -166,9 +166,10 @@ def get_dataloaders(self, train_data_dtype, eval_data_dtype) -> None:
 ### 奖励建模训练可能存在哪些鲁棒性问题？
 - 我们根据人类标注的偏好对训练奖励模型，如果输入奖励模型的`prompt+answer`是OOD的，那么得到的评分很可能并不准确，因为奖励模型很可能不能在新的空间中捕捉人类偏好。
 - repeating data 会导致过拟合。RLHF中对同一个输入有K个回答的标注，进而形成$\binom{K}{2}$个偏好对。如果将这些偏好对视作独立的数据点，shuffle之后进行训练，那么会导致每一种回答都进行了K-1次梯度优化，进而导致过拟合，所以应该作为一个batch放到一个forward pass中。 [Ouyang, Long, et al.](https://arxiv.org/pdf/2203.02155)
+  
 <figure style="text-align: center;">
-  <img src="./fig/rlhf_rm.bmp" alt="RLHF pipeline" />
-  <figcaption>RLHF pipeline</figcaption>
+  <img src="./fig/rlhf_rm.bmp" alt="RLHF rm" />
+  <figcaption>Loss function for reward modeling</figcaption>
 </figure>
 
 ### 如何缓解奖励建模的长度偏差？
